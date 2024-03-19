@@ -16,8 +16,8 @@ struct Magazine {
 }
 
 #[derive(Debug, Deserialize)]
-struct Record{
-    id : Thing,
+struct Record {
+    id: Thing,
     name: String,
     price: f32,
     day: u8,
@@ -74,7 +74,7 @@ async fn main() -> surrealdb::Result<()> {
     list_all(&db).await?;
     println!("--------------------------------------------");
 
-    list_star(&db).await?;
+    list_year(&db, 1987).await?;
     println!("--------------------------------------------");
 
     Ok(())
@@ -83,8 +83,10 @@ async fn main() -> surrealdb::Result<()> {
 async fn add_to(db: &Surreal<Db>, data: Vec<Magazine>) -> surrealdb::Result<()> {
     for magazine in data {
         let response = db
-            .query("CREATE product SET  name=$name, 
-                   price=$price, day=$day, month=$month, year=$year")
+            .query(
+                "CREATE product SET  name=$name, 
+                   price=$price, day=$day, month=$month, year=$year",
+            )
             .bind(("name", magazine.name))
             .bind(("price", magazine.price))
             .bind(("day", magazine.day))
@@ -105,8 +107,10 @@ async fn add_to(db: &Surreal<Db>, data: Vec<Magazine>) -> surrealdb::Result<()> 
 
 async fn list_all(db: &Surreal<Db>) -> surrealdb::Result<()> {
     let mut entries = db
-        .query("SELECT name, price, day, month, year 
-               FROM type::table($table) ORDER BY name ASC")
+        .query(
+            "SELECT name, price, day, month, year 
+               FROM type::table($table) ORDER BY name ASC",
+        )
         .bind(("table", "product"))
         .await?;
     let entries: Vec<Magazine> = entries.take(0)?;
@@ -129,10 +133,11 @@ async fn list_all(db: &Surreal<Db>) -> surrealdb::Result<()> {
     Ok(())
 }
 
-async fn list_star(db: &Surreal<Db>) -> surrealdb::Result<()> {
+async fn list_year(db: &Surreal<Db>, year: u32) -> surrealdb::Result<()> {
     let mut entries = db
-        .query("SELECT * FROM type::table($table) WHERE year=1987")
+        .query("SELECT * FROM type::table($table) WHERE year=$year")
         .bind(("table", "product"))
+        .bind(("year", year))
         .await?;
     let entries: Vec<Magazine> = entries.take(0)?;
     for entry in entries {
