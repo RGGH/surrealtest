@@ -1,30 +1,14 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::RocksDb;
+use surrealdb::engine::local::Db;
+
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 
-#[derive(Debug, Deserialize,Serialize)]
-struct Name<'a> {
-    first: &'a str,
-    last: &'a str,
-}
-
-#[derive(Debug, Serialize,Deserialize)]
-struct Person<'a> {
-    title: &'a str,
-    name: Name<'a>,
-    marketing: bool,
-}
-
-#[derive(Debug, Serialize)]
-struct Responsibility {
-    marketing: bool,
-}
-
-#[derive(Debug, Deserialize,Serialize)]
-struct Record {
-    #[allow(dead_code)]
-    id: Thing,
+#[derive(Debug, Deserialize)]
+struct Entry {
+    name: String,
+    phone: String,
 }
 
 #[tokio::main]
@@ -38,38 +22,98 @@ async fn main() -> surrealdb::Result<()> {
     // Select a specific namespace / database
     db.use_ns("test").use_db("test").await?;
 
-    // Create a new person with a random id
-    let created: Vec<Record> = db
-        .create("person")
-        .content(Person {
-            title: "Founder & CEO",
-            name: Name {
-                first: "Tobie",
-                last: "Morgan Hitchcock",
-            },
-            marketing: true,
-        })
+    let _response = db
+        .query("DEFINE INDEX entry_email ON TABLE entry COLUMNS name UNIQUE")
         .await?;
 
-    // Update a person record with a specific id
-    let updated: Option<Record> = db
-        .update(("person", "jaime"))
-        .merge(Responsibility { marketing: true })
-        .await?;
+    let data = vec![("Joe", "123"), ("Jane", "456"), ("Jil", "789")];
 
-    // Select all people records
-    let people: Vec<Record> = db.select("person").await?;
-    dbg!(people);
+    add_to(&db, data).await?;
+    list_all(&db).await?;
+    println!("-------------");
 
-    // Perform a custom advanced query
-    let response:surrealdb::Response = db
-        .query("SELECT marketing, count() FROM type::table($table) GROUP BY marketing")
-        .bind(("table", "person"))
-        .await?;
+    //update(&db).await?;
+    //list_all(&db).await?;
+    //println!("-------------");
 
+    //delete(&db).await?;
+    //list_all(&db).await?;
+    //println!("-------------");
 
-
-
+    //add_to(&db, vec![("Joe", "7777777")]).await?;
+    //println!("this does not happen");
+    //list_all(&db).await?;
+    //println!("-------------");
 
     Ok(())
+}
+
+async fn add_to(db: &Surreal<Db>, data: Vec<(&str, &str)>) -> surrealdb::Result<()> {
+    for (name, phone) in data {
+        let response = db
+            .query("CREATE entry SET  name=$name, phone=$phone")
+            .bind(("name", name))
+            .bind(("phone", phone))
+            .await?;
+
+        match response.check() {
+            Ok(_) => {}
+            Err(err) => {
+                eprintln!("Could not add entry: '{}'", err);
+                return Err(err);
+            }
+        };
+    }
+    Ok(())
+}
+
+async fn list_all(db: &Surreal<Db>) -> surrealdb::Result<()> {
+    let mut entries = db
+        .query("SELECT name, phone FROM type::table($table) ORDER BY name ASC")
+        //.query("SELECT name, phone FROM type::table($table) where name='Jil'")
+        .bind(("table", "entry"))
+        .await?;
+    let entries: Vec<Entry> = entries.take(0)?;
+    for entry in entries {
+        println!("{}: {}", entry.name, entry.phone);
+    }
+
+    Ok(())
+}
+
+async fn update(db: &Surreal<Db>) -> surrealdb::Result<()> {
+    let name = "Jane";
+    let phone = "55555555";
+
+    let response = db
+        .query("UPDATE entry SET phone=$phone WHERE name=$name")
+        .bind(("name", name))
+        .bind(("phone", phone))
+        .await?;
+
+    match response.check() {
+        Ok(_) => Ok(()),
+        Err(err) => {
+            eprintln!("Could not add entry {}", err);
+            Err(err)
+        }
+    }
+}
+
+
+async fn delete(db: &Surreal<Db>) -> surrealdb::Result<()> {
+    let name = "Jane";
+
+    let response = db
+        .query("DELETE entry WHERE name=$name")
+        .bind(("name", name))
+        .await?;
+
+    match response.check() {
+        Ok(_) => Ok(()),
+        Err(err) => {
+            eprintln!("Could not delete entry {}", err);
+            Err(err)
+        }
+    }
 }
