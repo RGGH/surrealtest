@@ -15,6 +15,16 @@ struct Magazine {
     year: u32,
 }
 
+#[derive(Debug, Deserialize)]
+struct Record{
+    id : Thing,
+    name: String,
+    price: f32,
+    day: u8,
+    month: u8,
+    year: u32,
+}
+
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
     // Create database connection
@@ -27,6 +37,8 @@ async fn main() -> surrealdb::Result<()> {
 
     // Select specific namespace & database
     db.use_ns("test").use_db("test").await?;
+
+    let _cleanup = db.query("REMOVE TABLE product").await?;
 
     let _response = db
         //-- Create an index on the name, month and year fields of the product table
@@ -119,7 +131,7 @@ async fn list_all(db: &Surreal<Db>) -> surrealdb::Result<()> {
 
 async fn list_star(db: &Surreal<Db>) -> surrealdb::Result<()> {
     let mut entries = db
-        .query("SELECT * FROM type::table($table)")
+        .query("SELECT * FROM type::table($table) WHERE year=1987")
         .bind(("table", "product"))
         .await?;
     let entries: Vec<Magazine> = entries.take(0)?;
