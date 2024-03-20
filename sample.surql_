@@ -1,0 +1,19 @@
+REMOVE table product;
+REMOVE table featured;
+REMOVE table topic;
+
+DEFINE INDEX id ON TABLE product COLUMNS name,month,year UNIQUE;
+
+CREATE product SET name="Autosport" , month=12, day=9, year=1987;
+CREATE product SET name="Autosport" , month=7, day=9, year=1988;
+
+Let $v = SELECT * from product WHERE  month=12 && year=1987;
+Let $w = SELECT * from product WHERE  month=7 && year=1988;
+
+CREATE topic:Senna SET description="Senna", nat="Brazil";
+CREATE topic:Prost SET description="Prost", nat="France";
+
+RELATE $v->featured->topic:Senna;
+RELATE $w->featured->topic:Prost;
+
+SELECT * from featured;
