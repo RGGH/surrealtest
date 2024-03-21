@@ -77,7 +77,7 @@ async fn main() -> surrealdb::Result<()> {
 
     let _response = db
         //-- Create an index on the name, month and year fields of the product table
-        .query("DEFINE INDEX magid ON TABLE product COLUMNS name,month,year UNIQUE")
+        .query("DEFINE INDEX magid ON TABLE product COLUMNS name,day,month,year UNIQUE")
         .await?;
 
     let mut data = vec![
