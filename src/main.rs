@@ -18,11 +18,11 @@ pub struct Value {
     /// add product
     add: String,
     /// day number to add
-    number_day: i32,
+    number_day: u8,
     /// month number to add
-    number_month: i32,
+    number_month: u8,
     /// year number to add
-    number_year: i32,
+    number_year: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,9 +48,9 @@ pub struct Record {
 async fn main() -> surrealdb::Result<()> {
     // handle user input
     let value = Value::parse();
-    let day: u8 = value.number_day.try_into().unwrap();
-    let month: u8 = value.number_month.try_into().unwrap();
-    let year: u32 = value.number_year.try_into().unwrap();
+    let day: u8 = value.number_day;
+    let month: u8 = value.number_month;
+    let year: u32 = value.number_year;
     let next = format!("Day:{} Month:{} Year:{}", day, month, year);
     println!("{}", next.green());
     let new_mag = Magazine {
@@ -115,12 +115,11 @@ async fn main() -> surrealdb::Result<()> {
     // Banner - read from seperate file for customizing
     println!(
         r"
-         __                       ____  
-   _____/ /_____  ____  ___  ____/ / /_ 
-  / ___/ __/ __ \/ __ \/ _ \/ __  / __ \
- (__  ) /_/ /_/ / / / /  __/ /_/ / /_/ /
-/____/\__/\____/_/ /_/\___/\__,_/_.___/ "
-    );
+   _   _   _   _   _   _  
+  / \ / \ / \ / \ / \ / \ 
+ ( m | a | g | s | D | B )
+  \_/ \_/ \_/ \_/ \_/ \_/
+    ");
 
     add_to(&db, data).await?;
     list_all(&db).await?;
