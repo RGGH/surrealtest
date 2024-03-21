@@ -2,7 +2,7 @@
 #![allow(unused)]
 use clap::Parser;
 use colored::Colorize;
-use controller::utils::*;
+use controller::*;
 use serde::Deserialize;
 use std::fmt::format;
 use surrealdb::engine::local::Db;
@@ -73,7 +73,7 @@ async fn main() -> surrealdb::Result<()> {
     db.use_ns("test").use_db("test").await?;
 
     // clear old, test data
-    let _cleanup = db.query("REMOVE TABLE product").await?;
+    //let _cleanup = db.query("REMOVE TABLE product").await?;
 
     let _response = db
         //-- Create an index on the name, month and year fields of the product table
@@ -81,34 +81,34 @@ async fn main() -> surrealdb::Result<()> {
         .await?;
 
     let mut data = vec![
-        Magazine {
-            name: "Autosport".to_string(),
-            price: 1.80,
-            day: 12,
-            month: 12,
-            year: 1987,
-        },
-        Magazine {
-            name: "Autosport".to_string(),
-            price: 2.10,
-            day: 1,
-            month: 9,
-            year: 1985,
-        },
-        Magazine {
-            name: "Autosport".to_string(),
-            price: 0.90,
-            day: 22,
-            month: 1,
-            year: 1984,
-        },
-        Magazine {
-            name: "Autosport".to_string(),
-            price: 1.20,
-            day: 23,
-            month: 9,
-            year: 1984,
-        },
+        // Magazine {
+        //     name: "Autosport".to_string(),
+        //     price: 1.80,
+        //     day: 12,
+        //     month: 12,
+        //     year: 1987,
+        // },
+        // Magazine {
+        //     name: "Autosport".to_string(),
+        //     price: 2.10,
+        //     day: 1,
+        //     month: 9,
+        //     year: 1985,
+        // },
+        // Magazine {
+        //     name: "Autosport".to_string(),
+        //     price: 0.90,
+        //     day: 22,
+        //     month: 1,
+        //     year: 1984,
+        // },
+        // Magazine {
+        //     name: "Autosport".to_string(),
+        //     price: 1.20,
+        //     day: 23,
+        //     month: 9,
+        //     year: 1984,
+        // },
     ];
     data.push(new_mag);
 
@@ -134,4 +134,3 @@ async fn main() -> surrealdb::Result<()> {
 
     Ok(())
 }
-
