@@ -1,6 +1,7 @@
+use surrealdb::Response;
 use surrealdb::{engine::local::Db, Surreal};
 use crate::Colorize;
-use crate::{Magazine, Record};
+use crate::{Magazine, Record,Feature};
 
 pub async fn add_to(db: &Surreal<Db>, data: Vec<Magazine>) -> surrealdb::Result<()> {
     for magazine in data {
@@ -70,22 +71,31 @@ pub async fn list_year(db: &Surreal<Db>, year: u32) -> surrealdb::Result<()> {
     Ok(())
 }
 
-pub async fn add_relate(db: &Surreal<Db>, topic: String) -> surrealdb::Result<()> {
+pub async fn add_relate(db: &Surreal<Db>, topic:&str ) -> surrealdb::Result<()> {
     let _relate = db
-        .query("RELATE product->featured->($topic)")
-        .bind(("topic", topic))
+        .query("CREATE type::table($table); 
+                let $mag = product:mwevltg3qxgdyng36xep;
+                let $tp = type::thing('topic', $top);
+                RELATE $mag->featured->$tp SET time.written = time::now();")
+        .bind(("top", topic))
+        .bind(("table", "topic"))
         .await?;
     Ok(())
 }
 
 pub async fn list_related(db: &Surreal<Db>) -> surrealdb::Result<()> {
     let mut entries = db
-        .query("SELECT * FROM type::table($table)")
-        .bind(("table", "featured"))
+        .query("SELECT id, time.written as time_written FROM featured")
         .await?;
-    let entries: Vec<Record> = entries.take(0)?;
+    let entries: Vec<Feature> = entries.take(0)?;
     for entry in entries {
-        println!("{:?} ", entry);
-    }
+        println!("added {:?}", entry.time_written.unwrap_or_default());
+    } 
+    Ok(())
+}
+
+pub async fn get_info(db:&Surreal<Db>)->surrealdb::Result<()>{
+    let mut info = db.query("INFO FOR DB").await?;
+    //println!("{:?}", info);
     Ok(())
 }

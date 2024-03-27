@@ -44,6 +44,12 @@ pub struct Record {
     year: u32,
 }
 
+#[derive(Debug,Deserialize)]
+pub struct Feature{
+    id: Thing,
+    time_written : Option<String>
+}
+
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
     // handle user input
@@ -74,6 +80,8 @@ async fn main() -> surrealdb::Result<()> {
 
     // clear old, test data
     //let _cleanup = db.query("REMOVE TABLE product").await?;
+    //let _cleanup = db.query("REMOVE TABLE topic").await?;
+    //let _cleanup = db.query("REMOVE TABLE featured").await?;
 
     let _response = db
         //-- Create an index on the name, month and year fields of the product table
@@ -81,34 +89,6 @@ async fn main() -> surrealdb::Result<()> {
         .await?;
 
     let mut data = vec![
-        // Magazine {
-        //     name: "Autosport".to_string(),
-        //     price: 1.80,
-        //     day: 12,
-        //     month: 12,
-        //     year: 1987,
-        // },
-        // Magazine {
-        //     name: "Autosport".to_string(),
-        //     price: 2.10,
-        //     day: 1,
-        //     month: 9,
-        //     year: 1985,
-        // },
-        // Magazine {
-        //     name: "Autosport".to_string(),
-        //     price: 0.90,
-        //     day: 22,
-        //     month: 1,
-        //     year: 1984,
-        // },
-        // Magazine {
-        //     name: "Autosport".to_string(),
-        //     price: 1.20,
-        //     day: 23,
-        //     month: 9,
-        //     year: 1984,
-        // },
     ];
     data.push(new_mag);
 
@@ -128,8 +108,10 @@ async fn main() -> surrealdb::Result<()> {
     list_year(&db, 1987).await?;
     println!("----------------------------------------------------------------");
 
-    //add_relate(&db,"Senna".to_string());
-    list_related(&db);
+    add_relate(&db,"senna3").await?;
+    list_related(&db).await?;
+    //get_info(&db).await?;
+    //println!("Done");
 
     Ok(())
 }
